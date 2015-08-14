@@ -1,0 +1,25 @@
+- hosts: all
+  remote_user: centos
+  sudo: yes
+  roles:
+    - common
+
+- hosts: ns-slave
+  remote_user: root
+  roles:
+    - mariadb
+    - pdns
+
+- hosts: ns-master
+  remote_user: root
+  roles:
+    - mariadb
+    - rabbitmq
+    - keystone
+    - designate
+
+- hosts: ns-slave
+  tasks:
+    - name: Start PowerDNS
+      service: name=pdns state=started enabled=yes
+

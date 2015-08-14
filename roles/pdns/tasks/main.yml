@@ -1,0 +1,19 @@
+---
+
+- name: Install PDNS and PDNS-Mysql-Backend
+  yum: name={{item}} state=present
+  with_items:
+    - pdns
+    - pdns-backend-mysql
+
+- name: Configure PDNS
+  template: src=pdns.conf.j2 dest=/etc/pdns/pdns.conf
+
+- name: Create PDNS DB
+  mysql_db: name={{ pdns_mysql_db }}
+
+- name: Create pdns user and setup permissions
+  mysql_user: host="%" name={{ pdns_mysql_user }} password={{ pdns_mysql_passwd }} priv={{ pdns_mysql_db }}.*:ALL state=present
+
+- name: Start pdns
+  service: name=pdns state=started enabled=yes

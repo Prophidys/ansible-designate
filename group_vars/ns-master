@@ -1,0 +1,13 @@
+---
+
+mysql_root_passwd: BpKEGsTm2BlL4uc
+mysql_designate_passwd: StCKqRsE64QaZNI
+mysql_designate_user: designate
+
+designate_db: designatedb
+designate_pooldb: designate_pooldb
+
+rabbitmq_designate_user: designate
+rabbitmq_designate_passwd: P7x9S7sDxWuEdLm
+
+pool_uuid: 82df2fd8-4127-11e5-8170-c7b046215f9f

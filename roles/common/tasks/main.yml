@@ -1,0 +1,14 @@
+---
+
+- name: Install EPEL Repository
+  yum: name=epel-release state=present
+
+- name: Install RDO Repository
+  yum: name=https://rdoproject.org/repos/rdo-release.rpm state=present
+
+- name: Update all package
+  yum: name=* state=latest
+
+- name: Permit the ssh via root user
+  command: cp /home/centos/.ssh/authorized_keys /root/.ssh/
+

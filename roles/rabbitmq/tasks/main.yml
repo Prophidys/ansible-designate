@@ -1,0 +1,7 @@
+---
+
+- name: Install RabbitMQ
+  yum: name=rabbitmq-server state=present
+
+- name: Ensure RabbitMQ is started
+  service: name=rabbitmq-server state=started enabled=yes

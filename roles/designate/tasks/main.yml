@@ -1,0 +1,54 @@
+---
+
+- name: Create Designate Database
+  mysql_db: name={{ designate_db }} state=present
+
+- name: Create Designate Pool Database
+  mysql_db: name={{ designate_pooldb }} state=present
+
+- name: Create Desigante MariaDB account and setup permissions
+  mysql_user: name={{ mysql_designate_user }} password={{ mysql_designate_passwd }} priv={{ designate_db }}.*:ALL/{{ designate_pooldb }}.*:ALL state=present
+
+- name: Create Designate RabbitMQ account and setup permissions
+  rabbitmq_user: user={{rabbitmq_designate_user}}
+                 password={{rabbitmq_designate_passwd}}
+                 vhost=/
+                 configure_priv=.*
+                 read_priv=.*
+                 write_priv=.*
+                 state=present
+
+- name: Install designate
+  yum: name={{item}} state=present
+  with_items:
+    - python-designateclient
+    - openstack-designate-pool-manager
+    - openstack-designate-mdns
+    - openstack-designate-common
+    - openstack-designate-central
+    - openstack-designate-api
+
+- name: Install designate template
+  template: src=designate.conf.j2 dest=/etc/designate/designate.conf
+
+- name: Install Designate Database
+  command: designate-manage database sync
+
+- name: Install Designate_Pool Database
+  command: designate-manage pool-manager-cache sync
+
+- name: Install PowerDNS DB Database
+  command: designate-manage powerdns sync {{ hostvars[item]['ansible_product_uuid'] }}
+  with_items: "{{ groups['ns-slave'] }}"
+
+- name: Launch Designate Central
+  service: name=designate-central state=started enabled=yes
+
+- name: Launch Designate API
+  service: name=designate-api state=started enabled=yes
+
+- name: Launch Designate MDNS
+  service: name=designate-mdns state=started enabled=yes
+
+- name: Launch Designate Pool-Manager
+  service: name=designate-pool-manager state=started enabled=yes
