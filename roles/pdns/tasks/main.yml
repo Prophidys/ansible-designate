@@ -15,5 +15,8 @@
 - name: Create pdns user and setup permissions
   mysql_user: host="%" name={{ pdns_mysql_user }} password={{ pdns_mysql_passwd }} priv={{ pdns_mysql_db }}.*:ALL state=present
 
+- name: Create pdns user and setup permissions for localhost
+  mysql_user: host="localhost" name={{ pdns_mysql_user }} password={{ pdns_mysql_passwd }} priv={{ pdns_mysql_db }}.*:ALL state=present
+
 - name: Start pdns
   service: name=pdns state=started enabled=yes
