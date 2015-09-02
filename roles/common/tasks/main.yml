@@ -12,3 +12,5 @@
 - name: Permit the ssh via root user
   command: cp /home/centos/.ssh/authorized_keys /root/.ssh/
 
+- name: Install some packages
+  yum: name=python-httplib2 state=present

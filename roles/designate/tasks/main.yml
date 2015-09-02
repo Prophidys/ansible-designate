@@ -1,5 +1,21 @@
 ---
 
+- name: Create Designate User in Keystone
+  environment: keystone_env
+  shell: openstack user create --password designate designate
+
+- name: Assign Designate Keystone User to Service
+  environment: keystone_env
+  shell: openstack role add --project service --user designate admin 
+
+- name: Create designate service
+  environment: keystone_env
+  shell: openstack service create --name designate --description "OpenStack DNS" dns
+
+- name: Create designate endpoint
+  environment: keystone_env
+  shell: openstack endpoint create --publicurl http://{{inventory_hostname}}:9001/v1 --internalurl http://{{inventory_hostname}}:9001/v1 --adminurl http://{{inventory_hostname}}:9001/v1 dns
+
 - name: Create Designate Database
   mysql_db: name={{ designate_db }} state=present
 
