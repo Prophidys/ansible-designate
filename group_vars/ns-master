@@ -4,6 +4,19 @@ mysql_root_passwd: BpKEGsTm2BlL4uc
 mysql_designate_passwd: StCKqRsE64QaZNI
 mysql_designate_user: designate
 
+mysql_keystone_user: keystone
+mysql_keystone_passwd: wG7cnRaW3JQKFZZ
+mysql_keystone_db: keystone
+
+keystone_admin_token: ADMIN
+
+keystone_env:
+  OS_TOKEN: "{{ keystone_admin_token }}"
+  OS_URL: "http://{{inventory_hostname}}:35357/v2.0"
+
+designate_env:
+  
+
 designate_db: designatedb
 designate_pooldb: designate_pooldb
 
