@@ -6,6 +6,21 @@
 - name: Install OpenStack CLI
   yum: pkg=python-openstackclient state=present
 
+- name: Install Apache
+  yum: pkg=httpd state=present
+
+- name: Install WSGI
+  yum: pkg=mod_wsgi state=present
+
+- name: Configure Apache
+  template: src=wsgi-keystone.conf.j2 dest=/etc/httpd/conf.d/wsgi-keystone.conf
+
+- name: Chown httpd log file
+  file: path=/var/log/httpd state=directory owner=apache group=apache recurse=yes
+
+- name: Install SELinux policy for Openstack
+  yum: pkg=openstack-selinux state=present
+
 - name: Create Keystone DB
   mysql_db: name={{ mysql_keystone_db }}
 
@@ -15,14 +30,17 @@
 - name: Configure Keystone
   template: src=keystone.conf.j2 dest=/etc/keystone/keystone.conf
 
+- name: Chown keystone config files
+  file: path=/etc/keystone state=directory owner=keystone group=keystone recurse=yes
+
 - name: Sync Keystone DB
   command: keystone-manage db_sync
 
 - name: Chown log for keystone
   shell: chown -R keystone:keystone /var/log/keystone/
 
-- name: Start Keystone
-  service: name=openstack-keystone state=started enabled=yes
+- name: Restart Apache
+  service: name=httpd state=restarted enabled=yes
 
 - name: Create Identity Service
   environment: keystone_env

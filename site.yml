@@ -19,6 +19,7 @@
     - designate
 
 - hosts: ns-slave
+  remote_user: root
   tasks:
     - name: Start PowerDNS
       service: name=pdns state=started enabled=yes

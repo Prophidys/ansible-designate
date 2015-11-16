@@ -17,10 +17,10 @@
   shell: openstack endpoint create --publicurl http://{{inventory_hostname}}:9001/v1 --internalurl http://{{inventory_hostname}}:9001/v1 --adminurl http://{{inventory_hostname}}:9001/v1 dns
 
 - name: Create Designate Database
-  mysql_db: name={{ designate_db }} state=present
+  mysql_db: name={{ designate_db }} state=present encoding=utf8
 
 - name: Create Designate Pool Database
-  mysql_db: name={{ designate_pooldb }} state=present
+  mysql_db: name={{ designate_pooldb }} state=present encoding=utf8
 
 - name: Create Desigante MariaDB account and setup permissions
   mysql_user: name={{ mysql_designate_user }} password={{ mysql_designate_passwd }} priv={{ designate_db }}.*:ALL/{{ designate_pooldb }}.*:ALL state=present
