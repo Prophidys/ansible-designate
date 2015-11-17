@@ -43,6 +43,7 @@
     - openstack-designate-common
     - openstack-designate-central
     - openstack-designate-api
+    - python-tooz
 
 - name: Install designate template
   template: src=designate.conf.j2 dest=/etc/designate/designate.conf
