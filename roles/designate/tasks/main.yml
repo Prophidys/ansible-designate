@@ -1,14 +1,14 @@
 ---
 
-- name: Create Designate User in Keystone
+- name: Create Designate Service User in Keystone
   environment: keystone_env
   shell: openstack user create --password designate designate
 
-- name: Assign Designate Keystone User to Service
+- name: Assign Designate Keystone User to Service Tenant
   environment: keystone_env
   shell: openstack role add --project service --user designate admin 
 
-- name: Create designate service
+- name: Create Designate Service in keystone catalog
   environment: keystone_env
   shell: openstack service create --name designate --description "OpenStack DNS" dns
 
@@ -69,3 +69,18 @@
 
 - name: Launch Designate Pool-Manager
   service: name=designate-pool-manager state=started enabled=yes
+
+- name: Create the Designate User
+  environment: keystone_env
+  shell: openstack user create --password {{ designate_os_password }} {{ designate_os_user }}
+
+- name: Create Designate User tenant
+  environment: keystone_env
+  shell: openstack project create --description="Designate Test Tenant" {{ designate_os_tenant }}
+
+- name: Assign Designate User to 
+  environment: keystone_env
+  shell: openstack role add --project {{ designate_os_tenant }} --user {{ designate_os_user }} member
+
+- name: Create a RC file for Designate Creds
+  template: src=rc.j2 dest=/root/designate-test.rc

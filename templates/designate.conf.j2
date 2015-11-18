@@ -1,0 +1,142 @@
+[DEFAULT]
+# Where an option is commented out, but filled in this shows the default
+# value of that option
+
+########################
+## General Configuration
+########################
+# Show more verbose log output (sets INFO log level output)
+verbose = True
+
+# Show debugging output in logs (sets DEBUG log level output)
+debug = True
+
+# Top-level directory for maintaining designate's state
+state_path = /var/lib/designate
+
+# Log Configuration
+#log_config = None
+
+# Log directory
+logdir = /var/log/designate
+
+# Driver used for issuing notifications
+notification_driver = messaging
+
+# Notification Topics
+#notification_topics = notifications
+
+# Use "sudo designate-rootwrap /etc/designate/rootwrap.conf" to use the real
+# root filter facility.
+# Change to "sudo" to skip the filtering and just run the comand directly
+#root_helper = sudo designate-rootwrap /etc/designate/rootwrap.conf
+
+# Which networking API to use, Defaults to neutron
+#network_api = neutron
+
+# RabbitMQ Config
+rabbit_userid = {{ rabbitmq_designate_user }}
+rabbit_password = {{ rabbitmq_designate_passwd }}
+#rabbit_virtual_host = /
+#rabbit_use_ssl = False
+#rabbit_hosts = 127.0.0.1:5672
+
+########################
+## Service Configuration
+########################
+#-----------------------
+# Central Service
+#-----------------------
+[service:central]
+# Maximum domain name length
+#max_domain_name_len = 255
+
+# Maximum record name length
+#max_record_name_len = 255
+
+# Minimum TTL
+#min_ttl = None
+
+## Managed resources settings
+
+# Email to use for managed resources like domains created by the FloatingIP API
+#managed_resource_email = hostmaster@example.com.
+
+# Tenant ID to own all managed resources - like auto-created records etc.
+#managed_resource_tenant_id = 123456
+
+#-----------------------
+# API Service
+#-----------------------
+[service:api]
+api_host = 0.0.0.0
+api_port = 9001
+auth_strategy = noauth
+enable_api_v1 = True
+enable_api_v2 = True
+
+[keystone_authtoken]
+auth_host = 127.0.0.1
+auth_port = 35357
+auth_protocol = http
+admin_tenant_name = service
+admin_user = designate
+admin_password = designate
+
+#-----------------------
+# mDNS Service
+#-----------------------
+[service:mdns]
+#workers = None
+#host = 0.0.0.0
+#port = 5354
+#tcp_backlog = 100
+#all_tcp = False
+
+#-----------------------
+# Pool Manager Service
+#-----------------------
+[service:pool_manager]
+pool_id = 794ccc2c-d751-44fe-b57f-8894c9f5c842
+
+########################
+## Storage Configuration
+########################
+#-----------------------
+# SQLAlchemy Storage
+#-----------------------
+[storage:sqlalchemy]
+connection = mysql://{{mysql_designate_user}}:{{ mysql_designate_passwd }}@localhost/{{ designate_db }}
+
+###################################
+## Pool Manager Cache Configuration
+###################################
+#-----------------------
+# SQLAlchemy Pool Manager Cache
+#-----------------------
+[pool_manager_cache:sqlalchemy]
+connection = mysql://{{mysql_designate_user}}:{{ mysql_designate_passwd }}@localhost/{{ designate_pooldb }}
+
+#####################
+## Pool Configuration
+#####################
+
+[pool:794ccc2c-d751-44fe-b57f-8894c9f5c842]
+nameservers = {% for host in groups['ns-slave'] + groups['new-slave'] %}{{ hostvars[host]['ansible_product_uuid'] }}{% if not loop.last %},{% endif %}{% endfor %}
+
+targets = {% for host in groups['ns-slave'] + groups['new-slave'] %}{{ hostvars[host]['ansible_product_uuid'] }}{% if not loop.last %},{% endif %}{% endfor %}
+
+{% for host in groups['ns-slave'] + groups['new-slave'] %}
+[pool_nameserver:{{ hostvars[host]['ansible_product_uuid'] }}]
+host = {{ hostvars[host]['ansible_eth0']['ipv4']['address'] }}
+port = 53
+{% endfor %}
+
+{% for host in groups['ns-slave'] + groups['new-slave'] %}
+[pool_target:{{ hostvars[host]['ansible_product_uuid'] }}]
+options = connection: mysql://{{ pdns_mysql_user }}:{{ pdns_mysql_passwd }}@{{ hostvars[host]['ansible_eth0']['ipv4']['address'] }}/{{ pdns_mysql_db }}
+masters = {{ ansible_eth0.ipv4.address }}:5354
+type = powerdns
+host = {{ hostvars[host]['ansible_eth0']['ipv4']['address'] }}
+port = 53
+{% endfor %}

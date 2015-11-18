@@ -14,7 +14,9 @@ keystone_env:
   OS_TOKEN: "{{ keystone_admin_token }}"
   OS_URL: "http://{{inventory_hostname}}:35357/v2.0"
 
-designate_env:
+designate_os_user: designate-test
+designate_os_password: designate-test
+designate_os_tenant: designate-test
   
 
 designate_db: designatedb

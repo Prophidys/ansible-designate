@@ -1,0 +1,45 @@
+---
+- hosts: new-slave
+  remote_user: centos
+  sudo: yes
+  roles:
+    - common
+
+- hosts: all
+  remote_user: root
+  gather_facts: yes
+
+- hosts: new-slave
+  remote_user: root
+  roles:
+    - mariadb
+    - pdns
+
+- hosts: ns-master
+  remote_user: root
+  tasks:
+    - name: Add New server to the pool
+      template: src=templates/designate.conf.j2 dest=/etc/designate/designate.conf
+
+    - name: Restart Designate
+      service: name=designate-pool-manager state=restarted
+
+    - name: Create pdns DB
+      command: designate-manage powerdns sync {{ hostvars[item]['ansible_product_uuid'] }}
+      with_items: "{{ groups['new-slave'] }}"
+
+- hosts: new-slave
+  remote_user: root
+  tasks:
+    - name: Restart PDNS
+      service: name=pdns state=started enabled=yes 
+
+- hosts: ns-master
+  remote_user: root
+  tasks:
+    - name: Sync DB
+      environment: keystone_env 
+      command: designate sync-all
+
+    - name: Add the server as an Authoritative of the existing zones
+      command: echo yes

@@ -66,6 +66,10 @@
   environment: keystone_env
   shell: openstack role create admin
 
+- name: Create Member Role
+  environment: keystone_env
+  shell: openstack role create member
+
 - name: Link Admin User and Role
   environment: keystone_env
   shell: openstack role add --project admin --user admin admin
