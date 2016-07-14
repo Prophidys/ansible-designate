@@ -116,27 +116,3 @@ connection = mysql://{{mysql_designate_user}}:{{ mysql_designate_passwd }}@local
 #-----------------------
 [pool_manager_cache:sqlalchemy]
 connection = mysql://{{mysql_designate_user}}:{{ mysql_designate_passwd }}@localhost/{{ designate_pooldb }}
-
-#####################
-## Pool Configuration
-#####################
-
-[pool:794ccc2c-d751-44fe-b57f-8894c9f5c842]
-nameservers = {% for host in groups['ns-slave'] %}{{ hostvars[host]['ansible_product_uuid'] }}{% if not loop.last %},{% endif %}{% endfor %}
-
-targets = {% for host in groups['ns-slave'] %}{{ hostvars[host]['ansible_product_uuid'] }}{% if not loop.last %},{% endif %}{% endfor %}
-
-{% for host in groups['ns-slave'] %}
-[pool_nameserver:{{ hostvars[host]['ansible_product_uuid'] }}]
-host = {{ hostvars[host]['ansible_eth0']['ipv4']['address'] }}
-port = 53
-{% endfor %}
-
-{% for host in groups['ns-slave'] %}
-[pool_target:{{ hostvars[host]['ansible_product_uuid'] }}]
-options = connection: mysql://{{ pdns_mysql_user }}:{{ pdns_mysql_passwd }}@{{ hostvars[host]['ansible_eth0']['ipv4']['address'] }}/{{ pdns_mysql_db }}
-masters = {{ ansible_eth0.ipv4.address }}:5354
-type = powerdns
-host = {{ hostvars[host]['ansible_eth0']['ipv4']['address'] }}
-port = 53
-{% endfor %}

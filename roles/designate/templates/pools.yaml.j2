@@ -1,0 +1,31 @@
+- name: default
+  description: Default PowerDNS Pool
+
+  attributes: {}
+
+  ns_records:
+    - hostname: ns1-1.example.org.
+      priority: 1
+    - hostname: ns1-2.example.org.
+      priority: 2
+
+  nameservers:
+{% for host in groups['ns-slave'] %}
+    - host: {{ hostvars[host]['ansible_eth0']['ipv4']['address'] }}
+      port: 53
+{% endfor %}
+
+  targets:
+{% for host in groups['ns-slave'] %}
+    - type: powerdns
+      description: PowerDNS Database Cluster
+
+      masters:
+        - host: {{ ansible_eth0.ipv4.address }}
+          port: 5354
+
+      options:
+        host: {{ hostvars[host]['ansible_eth0']['ipv4']['address'] }}
+        port: 53
+        connection: 'mysql://{{ pdns_mysql_user }}:{{ pdns_mysql_passwd }}@{{ hostvars[host]['ansible_eth0']['ipv4']['address'] }}/{{ pdns_mysql_db }}'
+{% endfor %}

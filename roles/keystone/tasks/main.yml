@@ -49,27 +49,34 @@
 - name: Create Identity Endpoint
   environment: keystone_env
   shell: openstack endpoint create --publicurl http://{{inventory_hostname}}:5000/v2.0 --internalurl http://{{inventory_hostname}}:5000/v2.0 --adminurl http://{{inventory_hostname}}:35357/v2.0 identity
+  ignore_errors: true
 
 - name: Create Admin Tenant
   environment: keystone_env
   shell: openstack project create --description="Admin Tenant" admin
+  ignore_errors: true
 
 - name: Create Service Project
   environment: keystone_env
   shell: openstack project create --description="Service Tenant" service
+  ignore_errors: true
 
 - name: Create Admin User
   environment: keystone_env
   shell: openstack user create --password admin admin
+  ignore_errors: true
 
 - name: Create Admin Role
   environment: keystone_env
   shell: openstack role create admin
+  ignore_errors: true
 
 - name: Create Member Role
   environment: keystone_env
   shell: openstack role create member
+  ignore_errors: true
 
 - name: Link Admin User and Role
   environment: keystone_env
   shell: openstack role add --project admin --user admin admin
+  ignore_errors: true

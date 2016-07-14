@@ -3,18 +3,22 @@
 - name: Create Designate Service User in Keystone
   environment: keystone_env
   shell: openstack user create --password designate designate
+  ignore_errors: true
 
 - name: Assign Designate Keystone User to Service Tenant
   environment: keystone_env
   shell: openstack role add --project service --user designate admin 
+  ignore_errors: true
 
 - name: Create Designate Service in keystone catalog
   environment: keystone_env
   shell: openstack service create --name designate --description "OpenStack DNS" dns
+  ignore_errors: true
 
 - name: Create designate endpoint
   environment: keystone_env
   shell: openstack endpoint create --publicurl http://{{inventory_hostname}}:9001/v1 --internalurl http://{{inventory_hostname}}:9001/v1 --adminurl http://{{inventory_hostname}}:9001/v1 dns
+  ignore_errors: true
 
 - name: Create Designate Database
   mysql_db: name={{ designate_db }} state=present encoding=utf8
@@ -44,19 +48,20 @@
     - openstack-designate-central
     - openstack-designate-api
     - python-tooz
+    - python2-oslo-reports
+    - python-suds
 
 - name: Install designate template
   template: src=designate.conf.j2 dest=/etc/designate/designate.conf
+
+- name: Install designate pool config
+  template: src=pools.yaml.j2 dest=/etc/designate/pools.yaml
 
 - name: Install Designate Database
   command: designate-manage database sync
 
 - name: Install Designate_Pool Database
   command: designate-manage pool-manager-cache sync
-
-- name: Install PowerDNS DB Database
-  command: designate-manage powerdns sync {{ hostvars[item]['ansible_product_uuid'] }}
-  with_items: "{{ groups['ns-slave'] }}"
 
 - name: Launch Designate Central
   service: name=designate-central state=started enabled=yes
@@ -67,8 +72,18 @@
 - name: Launch Designate MDNS
   service: name=designate-mdns state=started enabled=yes
 
+- name: Update Pool
+  command: designate-manage pool update
+
 - name: Launch Designate Pool-Manager
   service: name=designate-pool-manager state=started enabled=yes
+
+- name: Grab pool id
+  shell: designate-manage pool show_config | grep id | awk '{print $2}'
+  register: pool_id
+
+- name: Sync Slaves
+  command: designate-manage powerdns sync {{ pool_id.stdout }}
 
 - name: Create the Designate User
   environment: keystone_env
